@@ -21,6 +21,8 @@ Its `matched_episodes` field is the episode list. It is already deduplicated per
 
 A single chunk is usually too small to quote from — it starts and ends mid-thought. `get_transcript_window` expands a hit into the surrounding section with start and end timestamps, which is what an answer of the form "at 14:32 he says …" actually needs.
 
+Not every hit is timestamped. A result with a null `start_time_seconds` matched the episode's written description rather than the recording, and no amount of expanding will give it a position in the audio. Treat those as "this episode is about that", not as a quote — asserting a timestamp that was never in the result is the one way to make this layer untrustworthy.
+
 ## Knowledge is the synthesis layer
 
 `search_knowledge` searches durable pages PodMule maintains per show: one page per episode, plus topic pages and guest pages that accumulate across the whole catalogue. Reach for it when the question is about the show's position rather than a moment in it:
@@ -29,6 +31,8 @@ A single chunk is usually too small to quote from — it starts and ends mid-tho
 - a topic overview, or how a theme developed over time
 - everything a recurring guest has contributed
 - takeaways across the back catalogue
+
+Results come back mixed: `page_type: "topic"` pages span the catalogue, `page_type: "episode"` pages cover one recording, and `guest` pages cover one person. For "what does the show think about X", the topic page is the answer and the episode pages are supporting detail — a topic page's summary names how many episodes it draws on, which is the fastest read on whether a theme is a recurring position or a one-off.
 
 `get_knowledge_page` returns a page in full, including the citations that ground each claim in a specific episode and quote. Those citations are the bridge back to the evidence layer — a synthesis answer without them is an assertion.
 
