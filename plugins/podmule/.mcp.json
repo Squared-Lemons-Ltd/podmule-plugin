@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "podmule": {
+      "type": "http",
+      "url": "https://app.podmule.com/mcp"
+    }
+  }
+}

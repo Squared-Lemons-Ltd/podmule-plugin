@@ -1,0 +1,16 @@
+{
+  "name": "podmule",
+  "displayName": "PodMule",
+  "description": "Search, draft and manage your podcast workspace from your agent.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Squared Lemons",
+    "url": "https://podmule.com"
+  },
+  "homepage": "https://app.podmule.com/mcp-setup",
+  "repository": "https://github.com/Squared-Lemons-Ltd/podmule-plugin",
+  "license": "MIT",
+  "keywords": ["podcast", "transcripts", "episodes", "clips", "crm"],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}

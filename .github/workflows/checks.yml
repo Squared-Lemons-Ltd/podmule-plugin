@@ -1,0 +1,25 @@
+name: checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Manifests
+        run: node scripts/check-manifests.mjs
+
+      # The capability list is public and unauthenticated, so this step needs
+      # no secrets. It fails when a skill names a capability the product has
+      # renamed or removed — the class of break nobody notices until a user
+      # hits it.
+      - name: Capability drift
+        run: node scripts/check-capability-drift.mjs
