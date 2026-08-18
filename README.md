@@ -76,6 +76,7 @@ plugins/podmule/
   .codex-plugin/plugin.json        Codex/ChatGPT manifest
   .mcp.json                        the connector declaration, shared by both
   skills/                          five skills, shared by both
+server.json                        the official MCP registry entry
 scripts/check-manifests.mjs        structural checks on the manifests
 scripts/check-capability-drift.mjs fails when a skill names a capability that no longer exists
 ```

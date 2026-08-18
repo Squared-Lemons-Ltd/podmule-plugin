@@ -34,6 +34,7 @@ function read(relative) {
   }
 }
 
+const registryEntry = read('server.json')
 const marketplace = read('.claude-plugin/marketplace.json')
 const claudeManifest = read('plugins/podmule/.claude-plugin/plugin.json')
 const codexManifest = read('plugins/podmule/.codex-plugin/plugin.json')
@@ -80,6 +81,29 @@ for (const [label, manifest] of [['claude', claudeManifest], ['codex', codexMani
 
 if (claudeManifest && codexManifest && claudeManifest.version !== codexManifest.version) {
   problems.push('plugin.json versions differ between the Claude and Codex manifests')
+}
+
+// The MCP registry entry is a fourth place the connector URL is written down,
+// and the one nobody looks at again after publishing.
+if (registryEntry) {
+  if (!registryEntry.name?.startsWith('com.podmule/')) {
+    problems.push('server.json: name must sit under the DNS-verified com.podmule namespace')
+  }
+  const remotes = registryEntry.remotes ?? []
+  if (remotes.length === 0) problems.push('server.json: no remotes declared')
+  for (const remote of remotes) {
+    if (remote.url !== CANONICAL_URL) {
+      problems.push(`server.json: remote url is "${remote.url}", not the canonical ${CANONICAL_URL}`)
+    }
+    if (remote.type !== 'streamable-http') {
+      problems.push(`server.json: remote type is "${remote.type}"; this endpoint speaks streamable-http`)
+    }
+  }
+  // The registry rejects anything longer at publish time, which is a slow way
+  // to find out.
+  if ((registryEntry.description ?? '').length > 100) {
+    problems.push('server.json: description must be 100 characters or fewer')
+  }
 }
 
 if (problems.length > 0) {
