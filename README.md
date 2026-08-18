@@ -10,6 +10,8 @@ Connector URL: `https://app.podmule.com/mcp` · Full setup guide: [app.podmule.c
 
 ## Install
 
+Everywhere except Claude Code, the whole install is the repo name — `Squared-Lemons-Ltd/podmule-plugin` — pasted into a Plugins settings screen.
+
 ### Claude Code
 
 ```
@@ -21,11 +23,17 @@ Then `/mcp` and sign in. A browser window opens for PodMule's consent screen; if
 
 > Non-interactive sessions (`claude -p`, the Agent SDK) cannot complete the OAuth flow and will report the tools as unavailable. Authorise once from an interactive session first.
 
-### ChatGPT desktop
+### Claude Desktop, ChatGPT and Codex
 
-Open the Plugins Directory, add `Squared-Lemons-Ltd/podmule-plugin` as a marketplace, then install **PodMule** from it and sign in.
+All three take the repo name directly. Open the **Plugins** section, choose **Add custom**, and enter:
 
-> The ChatGPT **chat** surface is not reachable this way — it needs a connector ID minted by your own developer-mode registration, which no distributable package can carry. Codex and ChatGPT desktop work.
+```
+Squared-Lemons-Ltd/podmule-plugin
+```
+
+Then install **PodMule** and sign in. One package, read by all of them.
+
+> The ChatGPT **chat** surface is a separate thing and is not reachable this way — it needs a connector ID minted by your own developer-mode registration, which no distributable package can carry.
 
 ### One click, other surfaces
 
