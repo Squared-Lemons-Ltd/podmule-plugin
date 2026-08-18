@@ -1,0 +1,111 @@
+name: publish to MCP registry
+
+# Publishing is deliberately not automatic on every push. It fires when
+# server.json changes — the file only changes when a publish is intended — and
+# can always be run by hand.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - server.json
+
+concurrency:
+  group: publish-registry
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install mcp-publisher
+        run: |
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" \
+            | tar xz mcp-publisher
+          ./mcp-publisher --help > /dev/null
+
+      - name: Read the entry
+        id: entry
+        run: |
+          {
+            echo "name=$(jq -r .name server.json)"
+            echo "version=$(jq -r .version server.json)"
+            echo "url=$(jq -r '.remotes[0].url' server.json)"
+          } >> "$GITHUB_OUTPUT"
+
+      # The registry requires a remote server to be publicly accessible at its
+      # published URL, and the listing propagates to downstream aggregators and
+      # to VS Code's built-in gallery. A broken entry is therefore expensive and
+      # slow to walk back — so prove the endpoint answers MCP before publishing
+      # anything that points at it.
+      - name: The connector URL must actually serve MCP
+        env:
+          URL: ${{ steps.entry.outputs.url }}
+        run: |
+          body='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ci","version":"1"}}}'
+          response=$(curl -fsS -X POST "$URL" \
+            -H 'Content-Type: application/json' \
+            -H 'Accept: application/json, text/event-stream' \
+            -d "$body" 2>&1) || {
+              echo "::error::$URL did not answer an MCP initialize. Refusing to publish a listing that points at an unreachable endpoint."
+              exit 1
+            }
+          echo "$response" | grep -q '"protocolVersion"' || {
+            echo "::error::$URL answered, but not with an MCP initialize result. Refusing to publish."
+            echo "$response" | head -c 500
+            exit 1
+          }
+          echo "$URL speaks MCP."
+
+      - name: Validate server.json
+        run: ./mcp-publisher validate
+
+      # Re-publishing an existing version is an error, so a no-op edit to
+      # server.json would otherwise fail the run for no reason.
+      - name: Skip if this version is already published
+        id: published
+        env:
+          NAME: ${{ steps.entry.outputs.name }}
+          VERSION: ${{ steps.entry.outputs.version }}
+        run: |
+          existing=$(curl -fsS --get \
+            --data-urlencode "search=$NAME" \
+            https://registry.modelcontextprotocol.io/v0/servers \
+            | jq -r --arg n "$NAME" --arg v "$VERSION" \
+                '[.servers[].server | select(.name == $n and .version == $v)] | length')
+          if [ "$existing" != "0" ]; then
+            echo "$NAME@$VERSION is already published; nothing to do."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # mcp-publisher wants the raw Ed25519 seed as hex, not a PEM path. An
+      # Ed25519 PKCS#8 DER is 48 bytes: a 16-byte header then the 32-byte seed.
+      - name: Publish
+        if: steps.published.outputs.skip == 'false'
+        env:
+          SIGNING_KEY_PEM: ${{ secrets.MCP_REGISTRY_SIGNING_KEY }}
+        run: |
+          umask 077
+          printf '%s' "$SIGNING_KEY_PEM" > key.pem
+          hex=$(openssl pkey -in key.pem -outform DER | tail -c 32 | xxd -p -c 64)
+          rm -f key.pem
+          echo "::add-mask::$hex"
+          [ "${#hex}" -eq 64 ] || { echo "::error::Derived seed is ${#hex} hex chars, expected 64. Is MCP_REGISTRY_SIGNING_KEY an Ed25519 PEM?"; exit 1; }
+
+          ./mcp-publisher login dns --domain=podmule.com --private-key="$hex"
+          ./mcp-publisher publish
+
+      - name: Confirm the listing resolves
+        if: steps.published.outputs.skip == 'false'
+        env:
+          NAME: ${{ steps.entry.outputs.name }}
+        run: |
+          curl -fsS --get --data-urlencode "search=$NAME" \
+            https://registry.modelcontextprotocol.io/v0/servers | jq '.servers[].server | {name, version}'
