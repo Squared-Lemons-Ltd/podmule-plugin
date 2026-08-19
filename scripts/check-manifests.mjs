@@ -83,6 +83,25 @@ if (claudeManifest && codexManifest && claudeManifest.version !== codexManifest.
   problems.push('plugin.json versions differ between the Claude and Codex manifests')
 }
 
+// A manifest naming an asset that isn't there fails worse than one with no
+// asset — the listing renders broken rather than plain, and only in someone
+// else's client. This is why the artwork fields were omitted until there was
+// real artwork to point at.
+const ASSET_FIELDS = ['logo', 'composerIcon', 'icon']
+for (const [label, manifest] of [['claude', claudeManifest], ['codex', codexManifest]]) {
+  if (!manifest) continue
+  for (const source of [manifest, manifest.interface ?? {}]) {
+    for (const field of ASSET_FIELDS) {
+      const value = source[field]
+      if (typeof value !== 'string') continue
+      if (/^https?:\/\//.test(value)) continue
+      if (!existsSync(join(REPO_ROOT, 'plugins', 'podmule', value))) {
+        problems.push(`${label} plugin.json: ${field} points at "${value}", which does not exist`)
+      }
+    }
+  }
+}
+
 // The MCP registry entry is a fourth place the connector URL is written down,
 // and the one nobody looks at again after publishing.
 if (registryEntry) {
