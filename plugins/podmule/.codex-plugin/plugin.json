@@ -11,7 +11,10 @@
     "longDescription": "PodMule is a podcast management platform: shows, episodes, transcripts, a searchable knowledge base built from the back catalogue, clips, guest CRM and interview scheduling. This plugin connects your agent to your own PodMule workspace so it can find material across every episode you have ever published, draft clips and show notes from real transcripts, brief you before an interview, and tell you what needs attention today. Requires a PodMule workspace — you sign in with your normal PodMule account when you install.",
     "developerName": "Squared Lemons",
     "category": "Productivity",
-    "capabilities": ["Read", "Write"],
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
     "websiteURL": "https://podmule.com",
     "privacyPolicyURL": "https://app.podmule.com/privacy",
     "termsOfServiceURL": "https://app.podmule.com/terms",
@@ -21,6 +24,8 @@
       "Brief me on my next interview guest.",
       "Draft clips from my most recent episode."
     ],
-    "brandColor": "#F5C518"
+    "brandColor": "#FF6A3D",
+    "logo": "./assets/logo.svg",
+    "composerIcon": "./assets/logo.svg"
   }
 }

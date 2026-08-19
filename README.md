@@ -1,3 +1,5 @@
+<img src="plugins/podmule/assets/icon.png" alt="" width="72" align="left" hspace="12" vspace="4">
+
 # PodMule plugin
 
 Connect your agent to your own [PodMule](https://podmule.com) podcast workspace — shows, episodes, transcripts, the knowledge base built from your back catalogue, clips, guest CRM and interview bookings.
@@ -84,6 +86,7 @@ plugins/podmule/
   .codex-plugin/plugin.json        Codex/ChatGPT manifest
   .mcp.json                        the connector declaration, shared by both
   skills/                          five skills, shared by both
+  assets/                          brand mark, taken from the PodMule marketing site
 server.json                        the official MCP registry entry
 scripts/check-manifests.mjs        structural checks on the manifests
 scripts/check-capability-drift.mjs fails when a skill names a capability that no longer exists
